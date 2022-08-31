@@ -1,0 +1,6 @@
+export const FETCH_PENDING = 'FETCH_PENDING'
+export const FETCH_SUCCESS = 'FETCH_SUCCESS'
+export const FETCH_ERROR = 'FETCH_ERROR'
+export const ADD_USER = 'ADD_USER'
+export const UPDATE_USER = 'UPDATE_USER'
+export const DELETE_USER = 'DELETE_USER'
