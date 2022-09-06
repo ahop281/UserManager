@@ -1,4 +1,4 @@
-import { ADD_USER, DELETE_USER, FETCH_ERROR, FETCH_PENDING, FETCH_SUCCESS, UPDATE_USER } from "../constaints"
+import { ADD_USER, DELETE_USER, FETCH_ERROR, FETCH_PENDING, FETCH_SUCCESS, SET_SEARCH_FILTER, UPDATE_USER } from "../constaints"
 
 export const fetchPending = () => {
     return {
@@ -37,6 +37,13 @@ export const updateUser = (data) => {
 export const deleteUser = (data) => {
     return {
         type: DELETE_USER,
+        payload: data
+    }
+}
+
+export const setSearchFilter = (data) => {
+    return {
+        type: SET_SEARCH_FILTER,
         payload: data
     }
 }

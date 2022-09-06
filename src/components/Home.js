@@ -1,8 +1,8 @@
-import { CheckOutlined, CheckSquareOutlined, CloseOutlined, CloseSquareOutlined, DeleteOutlined, EditOutlined, FormOutlined, PlusOutlined, UserAddOutlined, WarningOutlined } from '@ant-design/icons'
-import { Anchor, Button, Space, Spin, Table, Typography, Popconfirm, Form, InputNumber, Input, DatePicker } from 'antd'
+import * as icons from '@ant-design/icons'
+import * as antd from 'antd'
 import Search from 'antd/lib/input/Search'
 import moment from 'moment';
-import { Component, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const dateFormat = 'DD/MM/YYYY'
 
@@ -16,7 +16,7 @@ const EditableCell = ({
   children,
   ...restProps
 }) => {
-  var inputNode = inputType === 'number' ? <InputNumber /> : <Input />
+  var inputNode = inputType === 'number' ? <antd.InputNumber /> : <antd.Input />
   if(dataIndex === 'dob' && editing) {
     // inputNode = <DatePicker
     //   format={dateFormat}
@@ -27,23 +27,28 @@ const EditableCell = ({
     console.log('moment:', moment(record.dob, dateFormat));
   }
   // console.log(record, dataIndex);
+  const rules = [
+    {
+      required: true,
+      message: `Please Input ${title}!`
+    }
+  ]
+  if(dataIndex === 'email') rules.push({
+    type: 'email',
+    message: 'Invalid email'
+  })
   return (
     <td {...restProps}>
       {editing ? (
-        <Form.Item
+        <antd.Form.Item
           name={dataIndex}
           style={{
             margin: 0
           }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
+          rules={rules}
         >
           {inputNode}
-        </Form.Item>
+        </antd.Form.Item>
       ) : (
         children
       )}
@@ -54,37 +59,45 @@ const EditableCell = ({
 function Home({
   users,
   pending,
-  error,
+  filter,
   fetchDataPending,
   fetchDataSuccess,
   fetchDataError,
   addUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  setSearchFilter
 }) {
   const [editingKey, setEditingKey] = useState('')
-  const [form] = Form.useForm()
+  const [refresh, setRefresh] = useState(false)
+  const [form] = antd.Form.useForm()
 
   const fetchData = (url, request = { method: 'GET' }) => {
-    console.log('call api');
     fetchDataPending()
-    fetch(`https://localhost:44330/api/User/${url}`, {
+    fetch(`https://localhost:44348/api/User/${url}`, {
       ...request,
       headers: {
         'Content-Type': 'application/json'
       }
     })
       .then(res => {
-        if(request.method == 'GET')
+        if(request.method === 'GET')
           return res.json()
         fetchDataSuccess()
       })
       .then(res => {
         fetchDataSuccess(res)
+        setRefresh(false)
       })
       .catch(error => {
         fetchDataError(error)
+        showError(`Get Users Failed!\n ${error}`)
+        setRefresh(false)
       })
+  }
+
+  const showError = (err) => {
+    antd.message.error(`Error occurred: ${err}`);
   }
 
   useEffect(() => {
@@ -92,13 +105,24 @@ function Home({
   }, [])
 
   useEffect(() => {
-    const record = dataSource?.find(record => record?.key == 'add-user')
+    const record = dataSource?.find(record => record?.key === 'add-user')
     if(record)
       edit(record)
   }, [users])
 
+  const handleSearch = (e) => {
+    setSearchFilter(e.target.value.toLowerCase())
+  }
+
+  const handleRefresh = () => {
+    fetchData('GetAllUsers')
+    setRefresh(true)
+    if(filter !== '') setSearchFilter('')
+  }
+
   const handleAdd = () => {
     addUser()
+    if(filter !== '') setSearchFilter('')
   }
 
   const handleDelete = record => {
@@ -120,10 +144,10 @@ function Home({
       name: row.name,
       email: row.email,
       address: row.address,
-      dob: row.dob,
+      dob: moment(row.dob, dateFormat).format(),
     }
     updateUser(user)
-    if(record.key == 'add-user') {
+    if(record.key === 'add-user') {
       delete user.id
       fetchData('AddUser', { method: 'POST', body: JSON.stringify(user) })
     }
@@ -136,6 +160,8 @@ function Home({
   const isEditing = record => record.key === editingKey
 
   const cancel = () => {
+    if(editingKey === 'add-user')
+      deleteUser(editingKey)
     setEditingKey('')
   }
 
@@ -185,38 +211,39 @@ function Home({
         if(dataSource.length < 1) return null
 
         return editable ? (
-          <Space size='large'>
-            <Button
-              onClick={() => save(record)}
-              type='primary'
-              ghost
-            >
-              <CheckOutlined />
-            </Button>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <Button type='default' danger>
-                <CloseOutlined />
-              </Button>
-            </Popconfirm>
-          </Space>
+          <antd.Space size='large'>
+            <antd.Tooltip title='Save Editing' color='blue'>
+              <antd.Button
+                onClick={() => save(record)}
+                type='primary'
+                ghost
+              >
+                <icons.CheckOutlined />
+              </antd.Button>
+            </antd.Tooltip>
+            <antd.Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+              <antd.Button type='default' danger>
+                <icons.CloseOutlined />
+              </antd.Button>
+            </antd.Popconfirm>
+          </antd.Space>
         ) : (
-          <Space size='large'>
-            <Button type='primary' ghost disabled={editingKey !== ''} onClick={() => edit(record)}>
-              <FormOutlined />
-            </Button>
-            <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record)}>
-              <Button type='default' danger disabled={editingKey !== ''}>
-                <DeleteOutlined />
-              </Button>
-            </Popconfirm>
-          </Space>
+          <antd.Space size='large'>
+            <antd.Tooltip title='Edit This User' color='blue'>
+              <antd.Button type='primary' ghost disabled={editingKey !== ''} onClick={() => edit(record)}>
+                <icons.FormOutlined />
+              </antd.Button>
+            </antd.Tooltip>
+            <antd.Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record)}>
+              <antd.Tooltip title='Delete This User' color='red'>
+                <antd.Button type='default' danger disabled={editingKey !== ''}>
+                  <icons.DeleteOutlined />
+                </antd.Button>
+              </antd.Tooltip>
+            </antd.Popconfirm>
+          </antd.Space>
         );
       }
-      // dataSource.length >= 1 ? (
-      //   <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
-      //     <a>Delete</a>
-      //   </Popconfirm>
-      // ) : null,
     },
   ];
 
@@ -237,14 +264,15 @@ function Home({
     };
   })
 
-  const dataSource = users?.map((user, index) => ({
-    key: user.id,
-    index: index + 1,
-    name: user.name,
-    email: user.email,
-    dob: moment(user.dob).format(dateFormat),
-    address: user.address
-  }))
+  const dataSource = users?.filter(user => user.name.toLowerCase().includes(filter))
+    .map((user, index) => ({
+      key: user.id,
+      index: index + 1,
+      name: user.name,
+      email: user.email,
+      dob: !!user.dob ? moment(user.dob).format(dateFormat) : '',
+      address: user.address
+    }))
 
   return (
     <div>
@@ -254,25 +282,30 @@ function Home({
         padding: '12px 16px',
         backgroundColor: 'white'
       }}>
-        <Typography.Title level={2}>Users</Typography.Title>
-        <Space size='large'>
+        <antd.Typography.Title level={2}>Users</antd.Typography.Title>
+        <antd.Space size='large'>
           <Search
-            placeholder="input search text"
+            placeholder="Search by name?"
             allowClear
-            onSearch={() => {}}
+            onChange={handleSearch}
             enterButton
+            value={filter}
           />
-          <Anchor>
-            <Button type='primary' onClick={handleAdd}>
-              <UserAddOutlined />
-            </Button>
-          </Anchor>
-        </Space>
+          <antd.Tooltip title='Add New User' color='blue'>
+            <antd.Button type='primary' onClick={handleAdd}>
+              <icons.UserAddOutlined />
+            </antd.Button>
+          </antd.Tooltip>
+          <antd.Tooltip title='Refresh' color='blue'>
+            <antd.Button type='primary' onClick={handleRefresh}>
+              <icons.SyncOutlined spin={refresh} />
+            </antd.Button>
+          </antd.Tooltip>
+        </antd.Space>
       </div>
-      <Form form={form} component={false}>
+      <antd.Form form={form} component={false}>
         {
-        /* error ? <Space size='large'><WarningOutlined />error</Space>
-          :  */<Table
+          <antd.Table
             components={{
               body: {
                 cell: EditableCell,
@@ -288,7 +321,7 @@ function Home({
             }}
           />
         }
-      </Form>
+      </antd.Form>
     </div>
   )
 }

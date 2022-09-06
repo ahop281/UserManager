@@ -14,7 +14,9 @@ export class SiteLayout extends Component {
             zIndex: 1,
             width: '100%',
             textAlign: 'center',
-            backgroundColor: 'white'
+            backgroundColor: 'white',
+            paddingTop: '12px',
+            paddingBottom: '16px'
           }}
         >
           <Typography.Title className="logo" style={{ color: '#008cff' }}>User Manager</Typography.Title>

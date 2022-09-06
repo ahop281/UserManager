@@ -1,10 +1,10 @@
-import { ADD_USER, DELETE_USER, FETCH_ERROR, FETCH_PENDING, FETCH_SUCCESS, UPDATE_USER } from "../constaints";
+import { ADD_USER, DELETE_USER, FETCH_ERROR, FETCH_PENDING, FETCH_SUCCESS, SET_SEARCH_FILTER, UPDATE_USER } from "../constaints";
 
 // Initial state
 const initialState = {
     users: [],
     pending: false,
-    error: null,
+    filter: ''
 }
 
 function reducer(state = initialState, action) {
@@ -13,13 +13,11 @@ function reducer(state = initialState, action) {
             return {
                 ...state,
                 pending: true,
-                error: null,
             }
         case FETCH_SUCCESS:
             const newState = {
                 ...state,
                 pending: false,
-                error: null
             }
             if(!!action.payload)
                 newState.users = action.payload
@@ -28,7 +26,7 @@ function reducer(state = initialState, action) {
             return {
                 ...state,
                 pending: false,
-                error: action.payload
+                users: []
             }
         case ADD_USER:
             const newUser = {
@@ -52,6 +50,11 @@ function reducer(state = initialState, action) {
                 ...state,
                 users: state.users.filter(user => user.id !== action.payload)
             }
+        case SET_SEARCH_FILTER:
+            return {
+                ...state,
+                filter: action.payload
+            }
 
         default:
             break;
@@ -60,6 +63,6 @@ function reducer(state = initialState, action) {
 
 export const getUsers = state => state?.users
 export const getPending = state => state?.pending
-export const getError = state => state?.error
+export const getFilter = state => state?.filter
 
 export default reducer
