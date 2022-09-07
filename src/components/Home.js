@@ -18,15 +18,16 @@ const EditableCell = ({
 }) => {
   var inputNode = inputType === 'number' ? <antd.InputNumber /> : <antd.Input />
   if(dataIndex === 'dob' && editing) {
-    // inputNode = <DatePicker
-    //   format={dateFormat}
-    //   value={moment(record.dob, dateFormat)}
-    //   picker='date'
-    //   allowClear
-    // />
-    console.log('moment:', moment(record.dob, dateFormat));
+    inputNode = <antd.DatePicker
+      format={dateFormat}
+      value={moment(record.dob, dateFormat)}
+      picker='date'
+      allowClear
+      onChange={() => {
+        console.log('On change');
+      }}
+    />
   }
-  // console.log(record, dataIndex);
   const rules = [
     {
       required: true,
@@ -133,6 +134,7 @@ function Home({
   const edit = record => {
     form.setFieldsValue({
       ...record,
+      dob: record.dob !== '' ? moment(record.dob, dateFormat) : moment()
     })
     setEditingKey(record.key)
   }
@@ -141,9 +143,9 @@ function Home({
     const row = await form.validateFields();
     const user = {
       ...users.find(user => user.id === record.key),
-      name: row.name,
+      name: row.name.trim(),
       email: row.email,
-      address: row.address,
+      address: row.address.trim(),
       dob: moment(row.dob, dateFormat).format(),
     }
     updateUser(user)
@@ -290,14 +292,15 @@ function Home({
             onChange={handleSearch}
             enterButton
             value={filter}
+            disabled={pending}
           />
           <antd.Tooltip title='Add New User' color='blue'>
-            <antd.Button type='primary' onClick={handleAdd}>
+            <antd.Button type='primary' onClick={handleAdd} disabled={pending}>
               <icons.UserAddOutlined />
             </antd.Button>
           </antd.Tooltip>
           <antd.Tooltip title='Refresh' color='blue'>
-            <antd.Button type='primary' onClick={handleRefresh}>
+            <antd.Button type='primary' onClick={handleRefresh} disabled={pending}>
               <icons.SyncOutlined spin={refresh} />
             </antd.Button>
           </antd.Tooltip>
